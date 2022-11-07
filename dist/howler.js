@@ -3656,9 +3656,9 @@
         sound._filterNode.type = sound._filterType || "lowpass";
         sound._filterNode.Q.value = sound._q || 1.0;
         // connect sound's gain node to convolver send gain node
-        sound._fxInsertIn.disconnect();
-        sound._fxInsertIn.connect(sound._filterNode);
-        sound._filterNode.connect(sound._fxInsertOut);
+        // sound._fxInsertIn.disconnect();
+        // sound._fxInsertIn.connect(sound._filterNode);
+        sound._filterNode.connect(Howler.ctx.destination);
         // Update the connections.
         if (!sound._paused) {
             sound._parent.pause(sound._id, true).play(sound._id);
