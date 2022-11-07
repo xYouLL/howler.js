@@ -2190,15 +2190,15 @@
             sound._node.bufferSource = Howler.ctx.createBufferSource();
             sound._node.bufferSource.buffer = cache[self._src];
 
-            sound._node.bufferSource.connect(sound._fxInsertIn);
-            sound._node.bufferSource.connect(sound._fxSend);
-
             // Connect to the correct node.
-            // if (sound._panner) {
-            //     sound._node.bufferSource.connect(sound._panner);
+            if (sound._panner) {
+                sound._node.bufferSource.connect(sound._panner);
+            }
             // } else {
             //     sound._node.bufferSource.connect(sound._node);
             // }
+            sound._node.bufferSource.connect(sound._fxInsertIn);
+            sound._node.bufferSource.connect(sound._fxSend);
 
             // Setup looping and playback rate.
             sound._node.bufferSource.loop = sound._loop;
