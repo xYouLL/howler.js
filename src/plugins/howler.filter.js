@@ -333,10 +333,10 @@
         // sound._fxInsertIn.connect(sound._filterNode);
         if (sound._panner) {
             console.log("Panner available", sound._panner);
-            sound._filterNode.connect(sound._panner);
+            sound._panner.connect(sound._filterNode);
         } else {
             console.log("Panner not available", sound._node);
-            sound._filterNode.connect(sound._node);
+            sound._node.connect(sound._filterNode);
         }
         // Update the connections.
         if (!sound._paused) {
