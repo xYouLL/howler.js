@@ -331,7 +331,13 @@
         // connect sound's gain node to convolver send gain node
         // sound._fxInsertIn.disconnect();
         // sound._fxInsertIn.connect(sound._filterNode);
-        sound._filterNode.connect(Howler.ctx.destination);
+        if (sound._panner) {
+            console.log("Panner available", sound._panner);
+            sound._filterNode.connect(sound._panner);
+        } else {
+            console.log("Panner not available", sound._node);
+            sound._filterNode.connect(sound._node);
+        }
         // Update the connections.
         if (!sound._paused) {
             sound._parent.pause(sound._id, true).play(sound._id);

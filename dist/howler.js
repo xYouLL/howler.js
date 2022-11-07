@@ -2217,6 +2217,10 @@
             var self = this;
             var isIOS = Howler._navigator && Howler._navigator.vendor.indexOf("Apple") >= 0;
 
+            if (!node.bufferSource) {
+                return self;
+            }
+
             if (Howler._scratchBuffer && node.bufferSource) {
                 node.bufferSource.onended = null;
                 node.bufferSource.disconnect(0);
@@ -2638,7 +2642,6 @@
         window.Sound = Sound;
     }
 })();
-
 /*!
  *  Spatial Plugin - Adds support for stereo and 3D audio where Web Audio is supported.
  *
@@ -2949,6 +2952,7 @@
                         }
 
                         if (typeof sound._panner.positionX !== "undefined") {
+                            console.log("Setting position for source");
                             sound._panner.positionX.setValueAtTime(x, Howler.ctx.currentTime);
                             sound._panner.positionY.setValueAtTime(y, Howler.ctx.currentTime);
                             sound._panner.positionZ.setValueAtTime(z, Howler.ctx.currentTime);
@@ -3178,18 +3182,9 @@
                     panningModel: typeof o.panningModel !== "undefined" ? o.panningModel : pa.panningModel,
                 };
 
-                // Update the panner values or create a new panner if none exists.
+                // Create a new panner node if one doesn't already exist.
                 var panner = sound._panner;
-                if (panner) {
-                    panner.coneInnerAngle = pa.coneInnerAngle;
-                    panner.coneOuterAngle = pa.coneOuterAngle;
-                    panner.coneOuterGain = pa.coneOuterGain;
-                    panner.distanceModel = pa.distanceModel;
-                    panner.maxDistance = pa.maxDistance;
-                    panner.refDistance = pa.refDistance;
-                    panner.rolloffFactor = pa.rolloffFactor;
-                    panner.panningModel = pa.panningModel;
-                } else {
+                if (!panner) {
                     // Make sure we have a position to setup the node with.
                     if (!sound._pos) {
                         sound._pos = self._pos || [0, 0, -0.5];
@@ -3197,7 +3192,18 @@
 
                     // Create a new panner node.
                     setupPanner(sound, "spatial");
+                    panner = sound._panner;
                 }
+
+                // Update the panner values or create a new panner if none exists.
+                panner.coneInnerAngle = pa.coneInnerAngle;
+                panner.coneOuterAngle = pa.coneOuterAngle;
+                panner.coneOuterGain = pa.coneOuterGain;
+                panner.distanceModel = pa.distanceModel;
+                panner.maxDistance = pa.maxDistance;
+                panner.refDistance = pa.refDistance;
+                panner.rolloffFactor = pa.rolloffFactor;
+                panner.panningModel = pa.panningModel;
             }
         }
 
@@ -3319,7 +3325,6 @@
         }
     };
 })();
-
 /*!
  *  Filters Plugin - Adds support for filters (lowpass, high pass, band pass, or notch) on individual sounds when using WebAudio.
  *                 - Jack Campbell jackcampbell@acm.org
@@ -3651,9 +3656,15 @@
         sound._filterNode.type = sound._filterType || "lowpass";
         sound._filterNode.Q.value = sound._q || 1.0;
         // connect sound's gain node to convolver send gain node
-        sound._fxInsertIn.disconnect();
-        sound._fxInsertIn.connect(sound._filterNode);
-        sound._filterNode.connect(sound._fxInsertOut);
+        // sound._fxInsertIn.disconnect();
+        // sound._fxInsertIn.connect(sound._filterNode);
+        if (sound._panner) {
+            console.log("Panner available", sound._panner);
+            sound._filterNode.connect(sound._panner);
+        } else {
+            console.log("Panner not available", sound._node);
+            sound._filterNode.connect(sound._node);
+        }
         // Update the connections.
         if (!sound._paused) {
             sound._parent.pause(sound._id, true).play(sound._id);
