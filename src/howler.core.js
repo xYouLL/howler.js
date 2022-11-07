@@ -2194,11 +2194,11 @@
             sound._node.bufferSource.connect(sound._fxSend);
 
             // Connect to the correct node.
-            if (sound._panner) {
-                sound._node.bufferSource.connect(sound._panner);
-            } else {
-                sound._node.bufferSource.connect(sound._node);
-            }
+            // if (sound._panner) {
+            //     sound._node.bufferSource.connect(sound._panner);
+            // } else {
+            //     sound._node.bufferSource.connect(sound._node);
+            // }
 
             // Setup looping and playback rate.
             sound._node.bufferSource.loop = sound._loop;
