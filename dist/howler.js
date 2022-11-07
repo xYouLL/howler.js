@@ -3644,15 +3644,21 @@
     var setupFilter = function (sound) {
         // Create the new convolver send gain node.
         sound._filterNode = Howler.ctx.createBiquadFilter();
-        // set default gain node values
-        sound._filterNode.gain.value = 1.0;
-        sound._filterNode.frequency.value = sound._frequency || 1000.0;
-        sound._filterNode.type = sound._filterType || "lowpass";
-        sound._filterNode.Q.value = sound._q || 1.0;
+        sound._filterNode = new BiquadFilterNode(Howler.ctx, {
+            gain: 1.0,
+            frequency: sound._frequency || 1000.0,
+            type: sound._filterType || "lowpass",
+            Q: sound._q || 1.0,
+        });
         // connect sound's gain node to convolver send gain node
-        sound._fxInsertIn.disconnect();
-        sound._fxInsertIn.connect(sound._filterNode);
-        sound._filterNode.connect(sound._fxInsertOut);
+        // sound._fxInsertIn.disconnect();
+        if (sound._panner) {
+            sound._filterNode.connect(sound._panner);
+        } else {
+            sound._filterNode.connect(sound._node);
+        }
+        // sound._fxInsertIn.connect(sound._filterNode);
+        // sound._filterNode.connect(sound._fxInsertOut);
         // Update the connections.
         if (!sound._paused) {
             sound._parent.pause(sound._id, true).play(sound._id);
