@@ -3665,6 +3665,7 @@
             console.log("Panner not available", sound._node);
             sound._node.connect(sound._filterNode);
         }
+        sound._filterNode.connect(sound._panner);
         // Update the connections.
         if (!sound._paused) {
             sound._parent.pause(sound._id, true).play(sound._id);
