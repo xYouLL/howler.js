@@ -2191,14 +2191,14 @@
             sound._node.bufferSource.buffer = cache[self._src];
 
             // Connect to the correct node.
-            if (sound._panner) {
-                sound._node.bufferSource.connect(sound._panner);
-            }
             // } else {
             //     sound._node.bufferSource.connect(sound._node);
             // }
             sound._node.bufferSource.connect(sound._fxInsertIn);
             sound._node.bufferSource.connect(sound._fxSend);
+            if (sound._panner) {
+                sound._node.bufferSource.connect(sound._panner);
+            }
 
             // Setup looping and playback rate.
             sound._node.bufferSource.loop = sound._loop;
