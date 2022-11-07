@@ -2190,6 +2190,9 @@
             sound._node.bufferSource = Howler.ctx.createBufferSource();
             sound._node.bufferSource.buffer = cache[self._src];
 
+            sound._node.bufferSource.connect(sound._fxInsertIn);
+            sound._node.bufferSource.connect(sound._fxSend);
+
             // Connect to the correct node.
             if (sound._panner) {
                 sound._node.bufferSource.connect(sound._panner);
@@ -2307,6 +2310,18 @@
                 self._node.gain.setValueAtTime(volume, Howler.ctx.currentTime);
                 self._node.paused = true;
                 self._node.connect(Howler.masterGain);
+
+                // create hooks for fx
+                self._fxInsertIn = new GainNode(Howler.ctx);
+                self._fxSend = new GainNode(Howler.ctx);
+                self._fxInsertOut = new GainNode(Howler.ctx);
+
+                if (self._panner) {
+                    self._fxInsertOut.connect(self._panner);
+                } else {
+                    self._fxInsertOut.connect(self._node);
+                }
+                self._fxInsertIn.connect(self._fxInsertOut);
             } else if (!Howler.noAudio) {
                 // Get an unlocked Audio object from the pool.
                 self._node = Howler._obtainHtml5Audio();
@@ -3656,16 +3671,9 @@
         sound._filterNode.type = sound._filterType || "lowpass";
         sound._filterNode.Q.value = sound._q || 1.0;
         // connect sound's gain node to convolver send gain node
-        // sound._fxInsertIn.disconnect();
-        // sound._fxInsertIn.connect(sound._filterNode);
-        if (sound._panner) {
-            console.log("Panner available", sound._panner);
-            sound._panner.connect(sound._filterNode);
-        } else {
-            console.log("Panner not available", sound._node);
-            sound._node.connect(sound._filterNode);
-        }
-        sound._filterNode.connect(sound._panner);
+        sound._fxInsertIn.disconnect();
+        sound._fxInsertIn.connect(sound._filterNode);
+        sound._filterNode.connect(sound._fxInsertOut);
         // Update the connections.
         if (!sound._paused) {
             sound._parent.pause(sound._id, true).play(sound._id);

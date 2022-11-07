@@ -2190,6 +2190,9 @@
             sound._node.bufferSource = Howler.ctx.createBufferSource();
             sound._node.bufferSource.buffer = cache[self._src];
 
+            sound._node.bufferSource.connect(sound._fxInsertIn);
+            sound._node.bufferSource.connect(sound._fxSend);
+
             // Connect to the correct node.
             if (sound._panner) {
                 sound._node.bufferSource.connect(sound._panner);
@@ -2307,6 +2310,18 @@
                 self._node.gain.setValueAtTime(volume, Howler.ctx.currentTime);
                 self._node.paused = true;
                 self._node.connect(Howler.masterGain);
+
+                // create hooks for fx
+                self._fxInsertIn = new GainNode(Howler.ctx);
+                self._fxSend = new GainNode(Howler.ctx);
+                self._fxInsertOut = new GainNode(Howler.ctx);
+
+                if (self._panner) {
+                    self._fxInsertOut.connect(self._panner);
+                } else {
+                    self._fxInsertOut.connect(self._node);
+                }
+                self._fxInsertIn.connect(self._fxInsertOut);
             } else if (!Howler.noAudio) {
                 // Get an unlocked Audio object from the pool.
                 self._node = Howler._obtainHtml5Audio();
