@@ -2300,7 +2300,11 @@
 
             if (parent._webAudio) {
                 // Create the gain node for controlling volume (the source will connect to this).
-                self._node = new GainNode(Howler.ctx, { gain: volume });
+                self._node =
+                    typeof Howler.ctx.createGain === "undefined"
+                        ? Howler.ctx.createGainNode()
+                        : Howler.ctx.createGain();
+                self._node.gain.setValueAtTime(volume, Howler.ctx.currentTime);
                 self._node.paused = true;
                 self._node.connect(Howler.masterGain);
             } else if (!Howler.noAudio) {
@@ -2598,7 +2602,9 @@
 
         // Create and expose the master GainNode when using Web Audio (useful for plugins or advanced usage).
         if (Howler.usingWebAudio) {
-            Howler.masterGain = new GainNode(Howler.ctx, { gain: Howler._muted ? 0 : Howler._volume });
+            Howler.masterGain =
+                typeof Howler.ctx.createGain === "undefined" ? Howler.ctx.createGainNode() : Howler.ctx.createGain();
+            Howler.masterGain.gain.setValueAtTime(Howler._muted ? 0 : Howler._volume, Howler.ctx.currentTime);
             Howler.masterGain.connect(Howler.ctx.destination);
         }
 
@@ -3644,21 +3650,15 @@
     var setupFilter = function (sound) {
         // Create the new convolver send gain node.
         sound._filterNode = Howler.ctx.createBiquadFilter();
-        sound._filterNode = new BiquadFilterNode(Howler.ctx, {
-            gain: 1.0,
-            frequency: sound._frequency || 1000.0,
-            type: sound._filterType || "lowpass",
-            Q: sound._q || 1.0,
-        });
+        // set default gain node values
+        sound._filterNode.gain.value = 1.0;
+        sound._filterNode.frequency.value = sound._frequency || 1000.0;
+        sound._filterNode.type = sound._filterType || "lowpass";
+        sound._filterNode.Q.value = sound._q || 1.0;
         // connect sound's gain node to convolver send gain node
-        // sound._fxInsertIn.disconnect();
-        if (sound._panner) {
-            sound._filterNode.connect(sound._panner);
-        } else {
-            sound._filterNode.connect(sound._node);
-        }
-        // sound._fxInsertIn.connect(sound._filterNode);
-        // sound._filterNode.connect(sound._fxInsertOut);
+        sound._fxInsertIn.disconnect();
+        sound._fxInsertIn.connect(sound._filterNode);
+        sound._filterNode.connect(sound._fxInsertOut);
         // Update the connections.
         if (!sound._paused) {
             sound._parent.pause(sound._id, true).play(sound._id);
